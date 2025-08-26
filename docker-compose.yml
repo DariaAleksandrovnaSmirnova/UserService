@@ -1,0 +1,52 @@
+services:
+  master_postgres:
+    image: postgres:15-alpine
+    container_name: user-service-postgres
+    environment:
+      POSTGRES_DB: user_service_db
+      POSTGRES_USER: daria
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U daria -d user_service_db || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  master_redis:
+    image: redis:7-alpine
+    container_name: user-service-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  app:
+    build: .
+    container_name: user-service-app
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://master_postgres:5432/user_service_db
+      SPRING_DATASOURCE_USERNAME: daria
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_REDIS_HOST: master_redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_PROFILES_ACTIVE: dev
+    depends_on:
+      master_postgres:
+        condition: service_healthy
+      master_redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
