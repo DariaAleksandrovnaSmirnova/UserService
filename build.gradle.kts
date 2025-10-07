@@ -4,8 +4,8 @@ plugins {
     id("org.springframework.boot") version "3.2.0"
     id("io.spring.dependency-management") version "1.1.4"
     id("org.sonarqube") version "4.4.1.3373"
-    kotlin("jvm") version "1.9.20"}
-
+    kotlin("jvm") version "1.9.20"
+}
 
 group = "by.innowise"
 version = "1.0-SNAPSHOT"
@@ -52,7 +52,6 @@ dependencies {
     implementation("redis.clients:jedis:4.3.2")
     runtimeOnly("org.postgresql:postgresql")
 
-
     /**
      * Test containers
      */
@@ -89,7 +88,6 @@ tasks.test {
 tasks.withType<Test> {
     useJUnitPlatform()
     finalizedBy(tasks.jacocoTestReport)
-
 }
 
 val exclusions = listOf(
@@ -111,8 +109,12 @@ tasks.jacocoTestReport {
 tasks.jacocoTestCoverageVerification {
     dependsOn(tasks.test)
 
-    classDirectories.setFrom(files(fileTree("build/classes/java/main")
-        .exclude(exclusions)))
+    classDirectories.setFrom(
+        files(
+            fileTree("build/classes/java/main")
+                .exclude(exclusions)
+        )
+    )
 
     violationRules {
         rule {
