@@ -2,6 +2,7 @@ package innowise.user_service.service;
 
 import innowise.user_service.dto.UserDto;
 import innowise.user_service.entity.User;
+import innowise.user_service.exception.UserAlreadyExistsException;
 import innowise.user_service.mapper.UserMapper;
 import innowise.user_service.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -9,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +26,10 @@ public class UserService {
     @Transactional
     public UserDto createUser(UserDto userDto) {
         User user = userMapper.toEntity(userDto);
+        if (userRepository.findByEmail(userDto.getEmail()).isPresent()) {
+            throw new UserAlreadyExistsException(
+                    String.format("User with email %s already exists", user.getEmail()));
+        }
         User updatedUser = userRepository.save(user);
         return userMapper.toDto(updatedUser);
     }

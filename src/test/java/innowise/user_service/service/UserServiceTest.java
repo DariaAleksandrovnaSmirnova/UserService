@@ -2,6 +2,7 @@ package innowise.user_service.service;
 
 import innowise.user_service.dto.UserDto;
 import innowise.user_service.entity.User;
+import innowise.user_service.exception.UserAlreadyExistsException;
 import innowise.user_service.mapper.UserMapperImpl;
 import innowise.user_service.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -76,6 +77,14 @@ class UserServiceTest {
         verify(userMapper).toEntity(userDto);
         verify(userRepository).save(any(User.class));
         verify(userMapper).toDto(user);
+    }
+
+    @Test
+    void testCreateUserWithExistingEmail() {
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+
+        assertThrows(UserAlreadyExistsException.class, () -> userService.createUser(userDto));
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
